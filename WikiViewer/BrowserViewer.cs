@@ -16,8 +16,47 @@ namespace WikiViewer
         public void Form1_Load(object sender, EventArgs e) {       
             if (ConfigurationManager.AppSettings["Username"].Length == 0)
             {
-                saveAccount("vvquyet", "Mypassword");
+                webView21.Visible = false;
+                panel1.Visible = true;
+            } else
+            {
+                webView21.Visible = true;
+                webView21.Source = new Uri(url);
+                webView21.NavigationCompleted += WebView21_NavigationCompleted;
             }
+        }
+
+        private void Form1_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (ModifierKeys == Keys.Control && e.KeyCode == Keys.P)
+            {
+                // Show the login panel
+                webView21.Visible = false;
+                panel1.Visible = true;
+            }
+        }
+
+        protected override void WndProc(ref Message m)
+        {
+            const int WM_KEYDOWN = 0x0100;
+
+            if (m.Msg == WM_KEYDOWN)
+            {
+                // Check if Ctrl + Z is pressed
+                if (ModifierKeys == Keys.Control && (Keys)m.WParam == Keys.P)
+                {
+                    // Show the login panel
+                    webView21.Visible = false;
+                    panel1.Visible = true;
+                }
+            }
+            base.WndProc(ref m);
+        }
+
+        private void buttonSave_Click(object sender, EventArgs e)
+        {
+            saveAccount(textBoxUsername.Text, textBoxPassword.Text);
+            panel1.Visible = false;
             webView21.Visible = true;
             webView21.Source = new Uri(url);
             webView21.NavigationCompleted += WebView21_NavigationCompleted;
@@ -45,9 +84,8 @@ namespace WikiViewer
             {
                 webView21.Source = new Uri("https://wiki.humaxdigital.com/pages/viewpage.action?pageId=52430556");
             }
-            panel1.Visible = false;            
+            panel1.Visible = false;                        
         }
-
 
         private void saveAccount(string username, string password)
         {            
@@ -58,9 +96,7 @@ namespace WikiViewer
             config.AppSettings.Settings["Username"].Value = encryptedUsername;
             config.AppSettings.Settings["Password"].Value = encryptedPassword;
             config.Save(ConfigurationSaveMode.Modified);
-            ConfigurationManager.RefreshSection("appSettings");
-
-            MessageBox.Show("Credentials saved successfully.");
+            ConfigurationManager.RefreshSection("appSettings");            
         }
 
         // Method to encrypt the string
